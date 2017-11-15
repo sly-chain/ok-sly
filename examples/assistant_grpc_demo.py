@@ -17,9 +17,9 @@
 
 import logging
 
-import src.aiy.assistant.grpc
-import src.aiy.audio
-import src.aiy.voicehat
+import aiy.assistant.grpc
+import aiy.audio
+import aiy.voicehat
 
 logging.basicConfig(
     level=logging.INFO,
@@ -28,11 +28,11 @@ logging.basicConfig(
 
 
 def main():
-    status_ui = src.aiy.voicehat.get_status_ui()
+    status_ui = aiy.voicehat.get_status_ui()
     status_ui.status('starting')
-    assistant = src.aiy.assistant.grpc.get_assistant()
-    button = src.aiy.voicehat.get_button()
-    with src.aiy.audio.get_recorder():
+    assistant = aiy.assistant.grpc.get_assistant()
+    button = aiy.voicehat.get_button()
+    with aiy.audio.get_recorder():
         while True:
             status_ui.status('ready')
             print('Press the button and speak')
@@ -47,7 +47,7 @@ def main():
                     break
                 print('You said "', text, '"')
             if audio:
-                src.aiy.audio.play_audio(audio)
+                aiy.audio.play_audio(audio)
 
 
 if __name__ == '__main__':

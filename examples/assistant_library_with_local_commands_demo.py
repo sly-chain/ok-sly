@@ -28,9 +28,9 @@ import logging
 import subprocess
 import sys
 
-import src.aiy.assistant.auth_helpers
-import src.aiy.audio
-import src.aiy.voicehat
+import aiy.assistant.auth_helpers
+import aiy.audio
+import aiy.voicehat
 from google.assistant.library import Assistant
 from google.assistant.library.event import EventType
 
@@ -41,22 +41,22 @@ logging.basicConfig(
 
 
 def power_off_pi():
-    src.aiy.audio.say('Good bye!')
+    aiy.audio.say('Good bye!')
     subprocess.call('sudo shutdown now', shell=True)
 
 
 def reboot_pi():
-    src.aiy.audio.say('See you in a bit!')
+    aiy.audio.say('See you in a bit!')
     subprocess.call('sudo reboot', shell=True)
 
 
 def say_ip():
     ip_address = subprocess.check_output("hostname -I | cut -d' ' -f1", shell=True)
-    src.aiy.audio.say('My IP address is %s' % ip_address.decode('utf-8'))
+    aiy.audio.say('My IP address is %s' % ip_address.decode('utf-8'))
 
 
 def process_event(assistant, event):
-    status_ui = src.aiy.voicehat.get_status_ui()
+    status_ui = aiy.voicehat.get_status_ui()
     if event.type == EventType.ON_START_FINISHED:
         status_ui.status('ready')
         if sys.stdout.isatty():
@@ -89,7 +89,7 @@ def process_event(assistant, event):
 
 
 def main():
-    credentials = src.aiy.assistant.auth_helpers.get_assistant_credentials()
+    credentials = aiy.assistant.auth_helpers.get_assistant_credentials()
     with Assistant(credentials) as assistant:
         for event in assistant.start():
             process_event(assistant, event)
