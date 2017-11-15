@@ -15,20 +15,20 @@
 
 """A demo of the Google CloudSpeech recognizer."""
 
-import aiy.audio
-import aiy.cloudspeech
-import aiy.voicehat
+import src.aiy.audio
+import src.aiy.cloudspeech
+import src.aiy.voicehat
 
 
 def main():
-    recognizer = aiy.cloudspeech.get_recognizer()
+    recognizer = src.aiy.cloudspeech.get_recognizer()
     recognizer.expect_phrase('turn off the light')
     recognizer.expect_phrase('turn on the light')
     recognizer.expect_phrase('blink')
 
-    button = aiy.voicehat.get_button()
-    led = aiy.voicehat.get_led()
-    aiy.audio.get_recorder().start()
+    button = src.aiy.voicehat.get_button()
+    led = src.aiy.voicehat.get_led()
+    src.aiy.audio.get_recorder().start()
 
     while True:
         print('Press the button and speak')
@@ -40,11 +40,11 @@ def main():
         else:
             print('You said "', text, '"')
             if 'turn on the light' in text:
-                led.set_state(aiy.voicehat.LED.ON)
+                led.set_state(src.aiy.voicehat.LED.ON)
             elif 'turn off the light' in text:
-                led.set_state(aiy.voicehat.LED.OFF)
+                led.set_state(src.aiy.voicehat.LED.OFF)
             elif 'blink' in text:
-                led.set_state(aiy.voicehat.LED.BLINK)
+                led.set_state(src.aiy.voicehat.LED.BLINK)
             elif 'goodbye' in text:
                 break
 

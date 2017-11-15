@@ -27,8 +27,8 @@ It is available for Raspberry Pi 2/3 only; Pi Zero is not supported.
 import logging
 import sys
 
-import aiy.assistant.auth_helpers
-import aiy.voicehat
+import src.aiy.assistant.auth_helpers
+import src.aiy.voicehat
 from google.assistant.library import Assistant
 from google.assistant.library.event import EventType
 
@@ -39,7 +39,7 @@ logging.basicConfig(
 
 
 def process_event(event):
-    status_ui = aiy.voicehat.get_status_ui()
+    status_ui = src.aiy.voicehat.get_status_ui()
     if event.type == EventType.ON_START_FINISHED:
         status_ui.status('ready')
         if sys.stdout.isatty():
@@ -59,7 +59,7 @@ def process_event(event):
 
 
 def main():
-    credentials = aiy.assistant.auth_helpers.get_assistant_credentials()
+    credentials = src.aiy.assistant.auth_helpers.get_assistant_credentials()
     with Assistant(credentials) as assistant:
         for event in assistant.start():
             process_event(event)
