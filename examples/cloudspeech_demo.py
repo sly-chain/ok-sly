@@ -25,6 +25,7 @@ def main():
     recognizer.expect_phrase('turn off the light')
     recognizer.expect_phrase('turn on the light')
     recognizer.expect_phrase('blink')
+    recognizer.expect_phrase('repeat after me')
 
     button = aiy.voicehat.get_button()
     led = aiy.voicehat.get_led()
@@ -39,7 +40,10 @@ def main():
             print('Sorry, I did not hear you.')
         else:
             print('You said "', text, '"')
-            if 'turn on the light' in text:
+            if 'repeat after me' in text:
+                to_repeat = text.replace('repeat after me', '', 1)
+                aiy.audio.say(to_repeat)
+            elif 'turn on the light' in text:
                 led.set_state(aiy.voicehat.LED.ON)
             elif 'turn off the light' in text:
                 led.set_state(aiy.voicehat.LED.OFF)
