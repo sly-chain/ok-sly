@@ -12,9 +12,14 @@ It is available for Raspberry Pi 2/3 only; Pi Zero is not supported.
 import logging
 import sys
 import threading
+import subprocess
+import RPi.GPIO as GPIO
 
 import aiy.assistant.auth_helpers
 import aiy.voicehat
+import aiy.audio
+import aiy.assistant.grpc
+
 from google.assistant.library import Assistant
 from google.assistant.library.event import EventType
 
@@ -53,11 +58,13 @@ class MyAssistant(object):
 
     def _process_event(self, event):
         status_ui = aiy.voicehat.get_status_ui()
+        
         if event.type == EventType.ON_START_FINISHED:
             status_ui.status('ready')
             self._can_start_conversation = True
             # Start the voicehat button trigger.
             aiy.voicehat.get_button().on_press(self._on_button_pressed)
+            
             if sys.stdout.isatty():
                 print('Say "OK, Google" or press the button, then speak. '
                       'Press Ctrl+C to quit...')
@@ -68,6 +75,25 @@ class MyAssistant(object):
 
         elif event.type == EventType.ON_END_OF_UTTERANCE:
             status_ui.status('thinking')
+            
+        elif event.type == EventType.ON_RECOGNIZING_SPEECH_FINISHED and event.args:
+            print('You said:', event.args['text'])
+            text = event.args['text'].lower()
+            if text == 'repeat after me':
+                self._copy_me(text)
+            elif text == 'record me':
+                self._record_playback(text)
+                
+            elif text == 'lights on':
+                self._led_on()
+            
+            elif text == 'power off':
+                self._assistant.stop_conversation()
+                self._shutdown()
+            elif text == 'reboot':
+                self._assistant.stop_conversation()
+                self._reboot_pi()
+            
 
         elif event.type == EventType.ON_CONVERSATION_TURN_FINISHED:
             status_ui.status('ready')
@@ -83,6 +109,50 @@ class MyAssistant(object):
         # 2. The assistant library is already in a conversation.
         if self._can_start_conversation:
             self._assistant.start_conversation()
+    
+    #local commands - repeat
+    def copy_me(self):
+        assistant = aiy.assistant.grpc.get_assistant()
+        with aiy.audio.get_recorder():
+            while True:
+                print('Listening ...')
+                text, audio = assistant.recognize()
+                if text is not None:
+                    print('You said, "', text, '"')
+                    aiy.audio.say(text)
+                else:
+                    print('I did not hear you')
+
+    
+    #local commands - record and playback
+    def record_playback(self):
+        assistant = aiy.assistant.grpc.get_assistant()
+        with aiy.audio.get_recorder():
+            while True:
+                print('Recording ...')
+                text, audio = assistant.recognize()
+                if audio is not None:
+                    print('You said, "', text, '"')
+                    aiy.audio.play_audio(audio)
+                else:
+                    print('I did not hear you')   
+    
+    #local commands - led
+    def _led_on():
+        
+    
+    #local commands - power
+    def _shutdown(self):
+        print('shut down')
+        aiy.audio.say('Turning Off')
+        GPIO.cleanup()
+        subprocess.call(['sudo', 'shutdown', '-h', 'now'])
+    
+    def _reboot(self):
+        print('reboot')
+        aiy.audio.say('Restarting')
+        GPIO.cleanup()
+        subprocess.call(['sudo', 'reboot', '-h', 'now'])
 
 
 def main():
