@@ -56,14 +56,16 @@ class MyAssistant(object):
             for event in assistant.start():
                 self._process_event(event)
 
+
     def _process_event(self, event):
         status_ui = aiy.voicehat.get_status_ui()
+        button = aiy.voicehat.get_button()
         
         if event.type == EventType.ON_START_FINISHED:
             status_ui.status('ready')
             self._can_start_conversation = True
             # Start the voicehat button trigger.
-            aiy.voicehat.get_button().on_press(self._on_button_pressed)
+            button.on_press(self._on_button_pressed)
             
             if sys.stdout.isatty():
                 print('Say "OK, Google" or press the button, then speak. '
@@ -79,14 +81,21 @@ class MyAssistant(object):
         elif event.type == EventType.ON_RECOGNIZING_SPEECH_FINISHED and event.args:
             print('You said:', event.args['text'])
             text = event.args['text'].lower()
-            if text == 'repeat after me':
-                self._copy_me(text)
-            elif text == 'record me':
-                self._record_playback(text)
-                
-            elif text == 'lights on':
-                self._led_on()
             
+            #audio commands
+            if text == 'repeat after me':
+                self._repeat_after_me()
+            elif text == 'record me':
+                self._record_playback()
+            
+            #led commands
+            elif text == 'led mode':
+            try:
+                    self._led_control()
+                except:
+                    self._destroy_GPIO()
+            
+            #power commands
             elif text == 'power off':
                 self._assistant.stop_conversation()
                 self._shutdown()
@@ -110,8 +119,9 @@ class MyAssistant(object):
         if self._can_start_conversation:
             self._assistant.start_conversation()
     
+    
     #local commands - repeat
-    def copy_me(self):
+    def repeat_after_me(self):
         assistant = aiy.assistant.grpc.get_assistant()
         with aiy.audio.get_recorder():
             while True:
@@ -138,20 +148,43 @@ class MyAssistant(object):
                     print('I did not hear you')   
     
     #local commands - led
-    def _led_on():
+    def _led_control(self):
+        recognizer = aiy.cloudspeech.get_recognizer()
+        recognizer.expect_phrase('turn on the light')
+        recognizer.expect_phrase('turn off the light')
         
+        GPIO.setmode(GPIO.BOARD)
+        GPIO.setwarnings(False)
+        GPIO.setup(26, GPIO.OUT)
+        GPIO.output(26, GPIO.HIGH)
+        
+        with aiy.audio.get_recorder():
+            while True:
+                text = recognizer.recognize()
+                if text is not None:
+                    print('You said "', text, '"')
+                    if 'turn on the light' in text:
+                        GPIO.output(26, GPIO.HIGH)
+                    elif 'turn off the light' in text:
+                        GPIO.output(26, GPIO.LOW)
+                else:
+                    print('Sorry, I did not hear you')
     
     #local commands - power
+    def _destroy_GPIO(self):
+        GPIO.output(26, GPIO.LOW)
+        GPIO.cleanup()
+        
     def _shutdown(self):
         print('shut down')
         aiy.audio.say('Turning Off')
-        GPIO.cleanup()
+        self._destroy_GPIO()
         subprocess.call(['sudo', 'shutdown', '-h', 'now'])
     
     def _reboot(self):
         print('reboot')
         aiy.audio.say('Restarting')
-        GPIO.cleanup()
+        self._destroy_GPIO()
         subprocess.call(['sudo', 'reboot', '-h', 'now'])
 
 
