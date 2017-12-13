@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """Run a recognizer using the Google Assistant Library with button support.
 
 The Google Assistant Library has direct access to the audio API, so this Python
@@ -16,6 +18,7 @@ import subprocess
 import RPi.GPIO as GPIO
 
 import aiy.assistant.auth_helpers
+import aiy.cloudspeech
 import aiy.voicehat
 import aiy.audio
 import aiy.assistant.grpc
@@ -83,25 +86,24 @@ class MyAssistant(object):
             text = event.args['text'].lower()
             
             #audio commands
-            if text == 'repeat after me':
-                self._repeat_after_me()
-            elif text == 'record me':
-                self._record_playback()
+#            if text == 'record me':
+#                self._record_playback()
             
             #led commands
-            elif text == 'led mode':
-            try:
+            if text == 'LED mode':
+                self._assistant.stop_conversation()
+                try:
                     self._led_control()
                 except:
                     self._destroy_GPIO()
             
             #power commands
-            elif text == 'power off':
-                self._assistant.stop_conversation()
-                self._shutdown()
-            elif text == 'reboot':
-                self._assistant.stop_conversation()
-                self._reboot_pi()
+#            elif text == 'shutdown':
+#                self._assistant.stop_conversation()
+#                self._shutdown()
+#            elif text == 'reboot':
+#                self._assistant.stop_conversation()
+#                self._reboot_pi()
             
 
         elif event.type == EventType.ON_CONVERSATION_TURN_FINISHED:
@@ -110,6 +112,7 @@ class MyAssistant(object):
 
         elif event.type == EventType.ON_ASSISTANT_ERROR and event.args and event.args['is_fatal']:
             sys.exit(1)
+            
 
     def _on_button_pressed(self):
         # Check if we can start a conversation. 'self._can_start_conversation'
@@ -120,73 +123,8 @@ class MyAssistant(object):
             self._assistant.start_conversation()
     
     
-    #local commands - repeat
-    def repeat_after_me(self):
-        assistant = aiy.assistant.grpc.get_assistant()
-        with aiy.audio.get_recorder():
-            while True:
-                print('Listening ...')
-                text, audio = assistant.recognize()
-                if text is not None:
-                    print('You said, "', text, '"')
-                    aiy.audio.say(text)
-                else:
-                    print('I did not hear you')
 
     
-    #local commands - record and playback
-    def record_playback(self):
-        assistant = aiy.assistant.grpc.get_assistant()
-        with aiy.audio.get_recorder():
-            while True:
-                print('Recording ...')
-                text, audio = assistant.recognize()
-                if audio is not None:
-                    print('You said, "', text, '"')
-                    aiy.audio.play_audio(audio)
-                else:
-                    print('I did not hear you')   
-    
-    #local commands - led
-    def _led_control(self):
-        recognizer = aiy.cloudspeech.get_recognizer()
-        recognizer.expect_phrase('turn on the light')
-        recognizer.expect_phrase('turn off the light')
-        
-        GPIO.setmode(GPIO.BOARD)
-        GPIO.setwarnings(False)
-        GPIO.setup(26, GPIO.OUT)
-        GPIO.output(26, GPIO.HIGH)
-        
-        with aiy.audio.get_recorder():
-            while True:
-                text = recognizer.recognize()
-                if text is not None:
-                    print('You said "', text, '"')
-                    if 'turn on the light' in text:
-                        GPIO.output(26, GPIO.HIGH)
-                    elif 'turn off the light' in text:
-                        GPIO.output(26, GPIO.LOW)
-                else:
-                    print('Sorry, I did not hear you')
-    
-    #local commands - power
-    def _destroy_GPIO(self):
-        GPIO.output(26, GPIO.LOW)
-        GPIO.cleanup()
-        
-    def _shutdown(self):
-        print('shut down')
-        aiy.audio.say('Turning Off')
-        self._destroy_GPIO()
-        subprocess.call(['sudo', 'shutdown', '-h', 'now'])
-    
-    def _reboot(self):
-        print('reboot')
-        aiy.audio.say('Restarting')
-        self._destroy_GPIO()
-        subprocess.call(['sudo', 'reboot', '-h', 'now'])
-
 
 def main():
     MyAssistant().start()
