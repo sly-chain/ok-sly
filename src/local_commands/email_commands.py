@@ -5,15 +5,13 @@ import os
 
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
-from email.mime.text import MIMEText
+#from email.mime.text import MIMEText
 from email.utils import COMMASPACE, formatdate
 from email import encoders
 
 from src.my_assistant import MyAssistant
-import aiy.audio
-import aiy.voicehat
-
-from google.assistant.library.event import EventType
+import src.aiy.audio
+import src.aiy.voicehat
 
 
 class EmailAssistant(MyAssistant):
@@ -21,41 +19,93 @@ class EmailAssistant(MyAssistant):
     def __init__(self):
         MyAssistant.__init__(self)
     
-    def _process_event(self, event):
-        status_ui = aiy.voicehat.get_status_ui()
-        if event.type == EventType.ON_RECOGNIZING_SPEECH_FINISHED and event.args:
-            print('You said:', event.args['text'])
-            text = event.args['text'].lower()
+    def _confirm_response(self, phrase, response, function):
+        assistant = src.aiy.assistant.grpc.get_assistant()
+        
+        src.aiy.audio.say('is this correct?')
+        text, audio = assistant.recognize()
+        
+        if text == 'yes':
+            src.aiy.audio.say(phrase, response)
+            return response
+        elif text == 'no':
+            self._try_again(function)
+    
+    def _confirm_information(self):
+        status_ui = src.aiy.voicehat.get_status_ui()
+        recipient = self._set_recipient()
+        file_name = self._set_attachment()
+        files = file_name + '.wav'
+        
+        src.aiy.audio.say('let\'s confirm. you would like', file_name, 'sent to', recipient, 'is this correct?')
+        assistant = src.aiy.assistant.grpc.get_assistant()
+        text, audio = assistant.recognize()
+        
+        if text == 'yes':
+            src.aiy.audio.say('ok sending email')
+            self._send_files(recipient, files)
+        elif text == 'no':
+            src.aiy.audio.say('ok')
+            status_ui.status('ready')
+            self._can_start_conversation = True  
+    
+    
+    def _try_again(self, function):
+        status_ui = src.aiy.voicehat.get_status_ui()
+        assistant = src.aiy.assistant.grpc.get_assistant()
+        
+        src.aiy.audio.say('would you like to try again?')
+        text, audio = assistant.recognize()
+        
+        if text == 'yes':
+            function()
+        else: 
+            src.aiy.audio.say('ok')
+            status_ui.status('ready')
+            self._can_start_conversation = True
+    
+    def _set_recipient(self):
+        assistant = src.aiy.assistant.grpc.get_assistant()
+        
+        src.aiy.audio.say('who should i send the email to')
+        print('Listening ...')
+        text, audio = assistant.recognize()
+        
+        if text is not None:
+            src.aiy.audio.say('You said', text)
+            print('You said, "', text, '"')
+            self._confirm_response('ok email will be sent to', text, self._set_recipient)
+
+        else:
+            print('i did not hear you')
+            src.aiy.audio.say('i did not hear you')
+            self.try_again(self._set_recipient)
+    
+    
+    def _set_files(self):
+        assistant = src.aiy.assistant.grpc.get_assistant()
+        
+        src.aiy.audio.say('what file should i send?')
+        print('Listening ...')
+        text, audio = assistant.recognize()
+        
+        if text is not None:
+            print('You said, "', text, '"')
+            src.aiy.audio.say('you said', text, 'is this correct?')
             
-            if text == 'email attachment':
-                assistant = aiy.assistant.grpc.get_assistant()
-                with aiy.audio.get_recorder():
-                    while True:
-                        aiy.audio.say('who should i send the email to')
-                        print('Listening ...')
-                        text, audio = assistant.recognize()
-                        if text is not None:
-                            print('You said, "', text, '"')
-                            text = recipient
-                        else:
-                            aiy.audio.say('i did not understand you, would you like to continue')
-                            print('I did not hear you')
-                            text, audio = assistant.recognize()
-                            if text == 'yes':
-                                self._process_event()
-                            else: 
-                                aiy.audio.say('ok')
-                                status_ui.status('ready')
-                                self._can_start_conversation = True
-                
-                
-                self._send_attachment(recipient, 
-                    'Subject', 
-                    'Dear sir..', 
-                    ['tkinter_gui.py'])
+            self._confirm_response('ok email will be sent to', text, self._set_files)
+            
+            
+            file_name = text
+            return file_name
+        else:
+            print('i did not hear you')
+            src.aiy.audio.say('i did not hear you')
+            self._try_again(self._set_attachment)      
 
 
-    def _send_attachment(self, recipient, subject, body, files=[]):
+
+    def _send_files(self, recipient, files=[]):
         assert type(recipient)==list
         assert type(files)==list
     
@@ -63,9 +113,9 @@ class EmailAssistant(MyAssistant):
         msg['From'] = user
         msg['To'] = COMMASPACE.join(recipient)
         msg['Date'] = formatdate(localtime=True)
-        msg['Subject'] = subject
+        msg['Subject'] = 'files from the cardboard'
     
-        msg.attach(MIMEText(body))
+#        msg.attach(MIMEText(body))
     
         for file in files:
             try:
@@ -92,22 +142,23 @@ class EmailAssistant(MyAssistant):
         except:
             print("Unable to send the email. Error: ", sys.exc_info()[0])
             raise
-    
+        
+        finally:
+            recipient = []
+            files = []
     
 
 user = ''
 passwd = ''
 
 #send_attachment( [recipient], subject, body, [attach] )
-EmailAssistant._send_attachment(['@gmail.com'], 
-         'Subject', 
+EmailAssistant._send_files(['@gmail.com'], 
          'Dear sir..', 
          ['tkinter_gui.py'])
 
 
 def main():
-    EmailAssistant._send_attachment()(['@gmail.com'], 
-         'Subject', 
+    EmailAssistant._files()(['@gmail.com'], 
          'Dear sir..', 
          ['tkinter_gui.py'] )
 

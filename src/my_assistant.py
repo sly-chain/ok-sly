@@ -22,6 +22,8 @@ import aiy.cloudspeech
 import aiy.voicehat
 import aiy.audio
 import aiy.assistant.grpc
+from local_commands.email_commands import EmailAssistant
+from local_commands.audio_commands import AudioAssistant
 
 from google.assistant.library import Assistant
 from google.assistant.library.event import EventType
@@ -84,10 +86,11 @@ class MyAssistant(object):
         elif event.type == EventType.ON_RECOGNIZING_SPEECH_FINISHED and event.args:
             print('You said:', event.args['text'])
             text = event.args['text'].lower()
-            
+
             #audio commands
 #            if text == 'record me':
-#                self._record_playback()
+#                self._assistant.stop_conversation()
+#                AudioAssistant._record_file()
             
             #led commands
             if text == 'LED mode':
@@ -96,6 +99,12 @@ class MyAssistant(object):
                     self._led_control()
                 except:
                     self._destroy_GPIO()
+            
+            #email commands
+            if text == 'send emails':
+                self._assistant.stop_conversation()
+                EmailAssistant._send_files()
+            
             
             #power commands
 #            elif text == 'shutdown':
