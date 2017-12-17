@@ -47,6 +47,9 @@ class MyAssistant(object):
         self._task = threading.Thread(target=self._run_task)
         self._can_start_conversation = False
         self._assistant = None
+        self._AudioAssistant = AudioAssistant()
+        self._EmailAssistant = EmailAssistant()
+        self._ShutdownAssistant = ShutdownAssistant()
 
     def start(self):
         """Starts the assistant.
@@ -91,11 +94,11 @@ class MyAssistant(object):
             #audio commands
             if text == 'record me':
                 self._assistant.stop_conversation()
-                AudioAssistant._create_wav_file()
+                self._AudioAssistant._create_wav_file()
                 
-            elif text == 'playback wav file':
+            elif text == 'play me':
                 self._assistant.stop_conversation()
-                AudioAssistant._play_wav_file()
+                self._AudioAssistant._play_wav_file()
             
             #led commands
             elif text == 'LED mode':
@@ -108,16 +111,16 @@ class MyAssistant(object):
             #email commands
             elif text == 'send emails':
                 self._assistant.stop_conversation()
-                EmailAssistant._send_files()
+                self._EmailAssistant._send_files()
             
             
             #power commands
-            elif text == 'shutdown':
+            elif text == 'shut down':
                 self._assistant.stop_conversation()
-                ShutdownAssistant._shutdown()
+                self._ShutdownAssistant._shutdown()
             elif text == 'reboot':
                 self._assistant.stop_conversation()
-                ShutdownAssistant._reboot()
+                self._ShutdownAssistant._reboot()
             
 
         elif event.type == EventType.ON_CONVERSATION_TURN_FINISHED:

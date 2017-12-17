@@ -6,15 +6,13 @@ import wave
 
 import aiy.audio
 import aiy.cloudspeech
-from src.my_assistant import MyAssistant
 
 #sys.path.append(os.path.realpath(os.path.join(__file__, '..', '..')) + '/src/')
 
 
-class AudioAssistant(MyAssistant):
+class AudioAssistant():
     
     def __init__(self):
-        MyAssistant.__init__(self)
         self._wav_file = 'my_recording.wav'
     
     #local commands - create and save file
@@ -22,27 +20,34 @@ class AudioAssistant(MyAssistant):
         wave_file = wave.open(self._wav_file, 'wb')
     
         try:
-            aiy.audio.say('recording starting')
+            aiy.audio.say('recording')
             print('Recording ...')
             aiy.audio.record_to_wave(wave_file, 5)
+            wave_file.setnchannels(2)
+            wave_file.setsampwidth(2)
+            wave_file.setframerate(44100)
+            
         except:
             aiy.audio.say('i did not get that')
             print('Problems with recording')
+            
         finally:
             wave_file.close()
     
     
     def _play_wav_file(self):
-        aiy.audio.play(self._wav_file)
+        try:
+            aiy.audio.play_wave(self._wav_file)
+        except FileNotFoundError:
+            print('file not found')
+            pass
 
 
+#def main():
+    #AudioAssistant._create_wav_file()
 
-
-def main():
-    AudioAssistant._create_wav_file()
-
-if __name__ == '__main__':
-    main()
+#if __name__ == '__main__':
+    #main()
 
 
     #local commands - repeat
