@@ -88,9 +88,13 @@ class MyAssistant(object):
             text = event.args['text'].lower()
 
             #audio commands
-#            if text == 'record me':
-#                self._assistant.stop_conversation()
-#                AudioAssistant._record_file()
+            if text == 'record me':
+                self._assistant.stop_conversation()
+                AudioAssistant._create_wav_file()
+                
+            if text == 'playback wav file':
+                self._assistant.stop_conversation()
+                AudioAssistant._play_wav_file()
             
             #led commands
             if text == 'LED mode':
