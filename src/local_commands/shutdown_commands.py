@@ -3,26 +3,29 @@
 import subprocess
 import RPi.GPIO as GPIO
 
-import aiy.assistant.auth_helpers
-import aiy.cloudspeech
-import aiy.voicehat
 import aiy.audio
-import aiy.assistant.grpc
+from src.my_assistant import MyAssistant
 
-
-#local commands - power
-def _destroy_GPIO(self):
-    GPIO.output(26, GPIO.LOW)
-    GPIO.cleanup()
+class ShutdownAssistant (MyAssistant):
     
-def _shutdown(self):
-    print('shut down')
-    aiy.audio.say('Turning Off')
-    self._destroy_GPIO()
-    subprocess.call(['sudo', 'shutdown', '-h', 'now'])
+    def __init__(self):
+        MyAssistant.__init__(self)
 
-def _reboot(self):
-    print('reboot')
-    aiy.audio.say('Restarting')
-    self._destroy_GPIO()
-    subprocess.call(['sudo', 'reboot', '-h', 'now'])
+
+    #local commands - power
+    def _destroy_GPIO(self):
+        GPIO.output(26, GPIO.LOW)
+        GPIO.cleanup()
+        
+    def _shutdown(self):
+        print('shut down')
+        aiy.audio.say('Turning Off')
+        self._destroy_GPIO()
+        subprocess.call(['sudo', 'shutdown', '-h', 'now'])
+    
+    def _reboot(self):
+        print('reboot')
+        aiy.audio.say('Restarting')
+        self._destroy_GPIO()
+        subprocess.call(['sudo', 'reboot', '-h', 'now'])
+
