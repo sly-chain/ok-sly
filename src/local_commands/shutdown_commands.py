@@ -4,13 +4,8 @@ import subprocess
 import RPi.GPIO as GPIO
 
 import aiy.audio
-from src.my_assistant import MyAssistant
 
-class ShutdownAssistant (MyAssistant):
-    
-    def __init__(self):
-        MyAssistant.__init__(self)
-
+class ShutdownAssistant ():
 
     #local commands - power
     def _destroy_GPIO(self):
@@ -19,13 +14,12 @@ class ShutdownAssistant (MyAssistant):
         
     def _shutdown(self):
         print('shut down')
-        aiy.audio.say('Turning Off')
-        self._destroy_GPIO()
-        subprocess.call(['sudo', 'shutdown', '-h', 'now'])
+        #aiy.audio.say('Turning Off')
+        #self._destroy_GPIO()
+        #subprocess.call(['sudo', 'shutdown', '-h', 'now'])
     
     def _reboot(self):
         print('reboot')
-        aiy.audio.say('Restarting')
-        self._destroy_GPIO()
-        subprocess.call(['sudo', 'reboot', '-h', 'now'])
-
+        #aiy.audio.say('Restarting')
+        #self._destroy_GPIO()
+        #subprocess.call(['sudo', 'reboot', '-h', 'now'])
