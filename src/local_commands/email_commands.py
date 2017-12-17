@@ -19,92 +19,6 @@ class EmailAssistant(MyAssistant):
     def __init__(self):
         MyAssistant.__init__(self)
     
-    def _confirm_response(self, phrase, response, function):
-        assistant = src.aiy.assistant.grpc.get_assistant()
-        
-        src.aiy.audio.say('is this correct?')
-        text, audio = assistant.recognize()
-        
-        if text == 'yes':
-            src.aiy.audio.say(phrase, response)
-            return response
-        elif text == 'no':
-            self._try_again(function)
-    
-    def _confirm_information(self):
-        status_ui = src.aiy.voicehat.get_status_ui()
-        recipient = self._set_recipient()
-        file_name = self._set_attachment()
-        files = file_name + '.wav'
-        
-        src.aiy.audio.say('let\'s confirm. you would like', file_name, 'sent to', recipient, 'is this correct?')
-        assistant = src.aiy.assistant.grpc.get_assistant()
-        text, audio = assistant.recognize()
-        
-        if text == 'yes':
-            src.aiy.audio.say('ok sending email')
-            self._send_files(recipient, files)
-        elif text == 'no':
-            src.aiy.audio.say('ok')
-            status_ui.status('ready')
-            self._can_start_conversation = True  
-    
-    
-    def _try_again(self, function):
-        status_ui = src.aiy.voicehat.get_status_ui()
-        assistant = src.aiy.assistant.grpc.get_assistant()
-        
-        src.aiy.audio.say('would you like to try again?')
-        text, audio = assistant.recognize()
-        
-        if text == 'yes':
-            function()
-        else: 
-            src.aiy.audio.say('ok')
-            status_ui.status('ready')
-            self._can_start_conversation = True
-    
-    def _set_recipient(self):
-        assistant = src.aiy.assistant.grpc.get_assistant()
-        
-        src.aiy.audio.say('who should i send the email to')
-        print('Listening ...')
-        text, audio = assistant.recognize()
-        
-        if text is not None:
-            src.aiy.audio.say('You said', text)
-            print('You said, "', text, '"')
-            self._confirm_response('ok email will be sent to', text, self._set_recipient)
-
-        else:
-            print('i did not hear you')
-            src.aiy.audio.say('i did not hear you')
-            self.try_again(self._set_recipient)
-    
-    
-    def _set_files(self):
-        assistant = src.aiy.assistant.grpc.get_assistant()
-        
-        src.aiy.audio.say('what file should i send?')
-        print('Listening ...')
-        text, audio = assistant.recognize()
-        
-        if text is not None:
-            print('You said, "', text, '"')
-            src.aiy.audio.say('you said', text, 'is this correct?')
-            
-            self._confirm_response('ok email will be sent to', text, self._set_files)
-            
-            
-            file_name = text
-            return file_name
-        else:
-            print('i did not hear you')
-            src.aiy.audio.say('i did not hear you')
-            self._try_again(self._set_attachment)      
-
-
-
     def _send_files(self, recipient, files=[]):
         assert type(recipient)==list
         assert type(files)==list
@@ -115,7 +29,7 @@ class EmailAssistant(MyAssistant):
         msg['Date'] = formatdate(localtime=True)
         msg['Subject'] = 'files from the cardboard'
     
-#        msg.attach(MIMEText(body))
+        # msg.attach(MIMEText(body))
     
         for file in files:
             try:
@@ -147,20 +61,132 @@ class EmailAssistant(MyAssistant):
             recipient = []
             files = []
     
+    
+    ### confirmation prompts  ###
+    
+    def _set_recipients(self):
+        assistant = src.aiy.assistant.grpc.get_assistant()
+        
+        src.aiy.audio.say('who should i send the email to?')
+        print('Listening ...')
+        text, audio = assistant.recognize()
+        
+        if text is not None:
+            src.aiy.audio.say('You said', text)
+            print('You said, "', text, '"')
+            
+            self._confirm_user_response('ok email will be sent to', text, self._set_recipient)
+        else:
+            print('i did not hear you')
+            src.aiy.audio.say('i did not hear you')
+            
+            self.try_again(self._set_recipient)    
+    
+    
+    def _confirm_user_response(self, phrase, response, function):
+        assistant = src.aiy.assistant.grpc.get_assistant()
+        
+        src.aiy.audio.say('is this correct?')
+        text, audio = assistant.recognize()
+        
+        if text == 'yes':
+            src.aiy.audio.say(phrase, response)
+            return response
+        elif text == 'no':
+            self._try_again(function)
+    
+    
+    def _try_again(self, function):
+        assistant = src.aiy.assistant.grpc.get_assistant()
+        
+        src.aiy.audio.say('would you like to try again?')
+        text, audio = assistant.recognize()
+        
+        if text == 'yes':
+            function()
+        else: 
+            self._end_program()
+    
+        
+    def _end_program(self):
+        status_ui = src.aiy.voicehat.get_status_ui()
+        src.aiy.audio.say('ok. let me know how else i can help.')
+        status_ui.status('ready')
+        self._can_start_conversation = True
+    
+    
+    ### set parameters ###
+    
+    def _set_recipient(self):
+        assistant = src.aiy.assistant.grpc.get_assistant()
+        
+        src.aiy.audio.say('who should i send the email to')
+        print('Listening ...')
+        text, audio = assistant.recognize()
+        
+        if text is not None:
+            src.aiy.audio.say('You said', text)
+            print('You said, "', text, '"')
+            self._confirm_user_response('ok email will be sent to', text, self._set_recipient)
+
+        else:
+            print('i did not hear you')
+            src.aiy.audio.say('i did not hear you')
+            self.try_again(self._set_recipient)
+    
+
+# =============================================================================
+#     def _confirm_information(self):
+#         status_ui = src.aiy.voicehat.get_status_ui()
+#         recipient = self._set_recipient()
+#         file_name = self._set_attachment()
+#         files = file_name + '.wav'
+#         
+#         src.aiy.audio.say('let\'s confirm. you would like', file_name, 'sent to', recipient, 'is this correct?')
+#         assistant = src.aiy.assistant.grpc.get_assistant()
+#         text, audio = assistant.recognize()
+#         
+#         if text == 'yes':
+#             src.aiy.audio.say('ok sending email')
+#             self._send_files(recipient, files)
+#         elif text == 'no':
+#             src.aiy.audio.say('ok')
+#             status_ui.status('ready')
+#             self._can_start_conversation = True  
+#             
+#     def _set_files(self):
+#         assistant = src.aiy.assistant.grpc.get_assistant()
+#         
+#         src.aiy.audio.say('what file should i send?')
+#         print('Listening ...')
+#         text, audio = assistant.recognize()
+#         
+#         if text is not None:
+#             print('You said, "', text, '"')
+#             src.aiy.audio.say('you said', text, 'is this correct?')
+#             
+#             self._confirm_user_response('ok email will be sent to', text, self._set_files)
+#             
+#             
+#             file_name = text
+#             return file_name
+#         else:
+#             print('i did not hear you')
+#             src.aiy.audio.say('i did not hear you')
+#             self._try_again(self._set_attachment)
+# =============================================================================
 
 user = ''
 passwd = ''
+files = []
 
-#send_attachment( [recipient], subject, body, [attach] )
-EmailAssistant._send_files(['@gmail.com'], 
-         'Dear sir..', 
-         ['tkinter_gui.py'])
 
 
 def main():
-    EmailAssistant._files()(['@gmail.com'], 
+    recipients = EmailAssistant._set_recipients()
+    EmailAssistant._send_files()([recipients], 
          'Dear sir..', 
-         ['tkinter_gui.py'] )
+         [files] )
 
 if __name__ == '__main__':
     main()
