@@ -18,6 +18,7 @@ class EmailAssistant(MyAssistant):
     
     def __init__(self):
         MyAssistant.__init__(self)
+        self._assistant = src.aiy.assistant.grpc.get_assistant()
     
     def _send_files(self, recipient, files=[]):
         assert type(recipient)==list
@@ -65,11 +66,9 @@ class EmailAssistant(MyAssistant):
     ### confirmation prompts  ###
     
     def _set_recipients(self):
-        assistant = src.aiy.assistant.grpc.get_assistant()
-        
         src.aiy.audio.say('who should i send the email to?')
         print('Listening ...')
-        text, audio = assistant.recognize()
+        text, audio = self._assistant.recognize()
         
         if text is not None:
             src.aiy.audio.say('You said', text)
@@ -84,10 +83,8 @@ class EmailAssistant(MyAssistant):
     
     
     def _confirm_user_response(self, phrase, response, function):
-        assistant = src.aiy.assistant.grpc.get_assistant()
-        
         src.aiy.audio.say('is this correct?')
-        text, audio = assistant.recognize()
+        text, audio = self._assistant.recognize()
         
         if text == 'yes':
             src.aiy.audio.say(phrase, response)
@@ -97,10 +94,8 @@ class EmailAssistant(MyAssistant):
     
     
     def _try_again(self, function):
-        assistant = src.aiy.assistant.grpc.get_assistant()
-        
         src.aiy.audio.say('would you like to try again?')
-        text, audio = assistant.recognize()
+        text, audio = self._assistant.recognize()
         
         if text == 'yes':
             function()
@@ -118,11 +113,9 @@ class EmailAssistant(MyAssistant):
     ### set parameters ###
     
     def _set_recipient(self):
-        assistant = src.aiy.assistant.grpc.get_assistant()
-        
         src.aiy.audio.say('who should i send the email to')
         print('Listening ...')
-        text, audio = assistant.recognize()
+        text, audio = self._assistant.recognize()
         
         if text is not None:
             src.aiy.audio.say('You said', text)
@@ -133,7 +126,26 @@ class EmailAssistant(MyAssistant):
             print('i did not hear you')
             src.aiy.audio.say('i did not hear you')
             self.try_again(self._set_recipient)
-    
+
+
+
+user = ''
+passwd = ''
+files = []
+
+
+
+def main():
+    recipients = EmailAssistant._set_recipients()
+    EmailAssistant._send_files()([recipients], 
+         'Dear sir..', 
+         [files] )
+
+if __name__ == '__main__':
+
+
+
+
 
 # =============================================================================
 #     def _confirm_information(self):
@@ -176,17 +188,3 @@ class EmailAssistant(MyAssistant):
 #             self._try_again(self._set_attachment)
 # =============================================================================
 
-user = ''
-passwd = ''
-files = []
-
-
-
-def main():
-    recipients = EmailAssistant._set_recipients()
-    EmailAssistant._send_files()([recipients], 
-         'Dear sir..', 
-         [files] )
-
-if __name__ == '__main__':
-    main()
