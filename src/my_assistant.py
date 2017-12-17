@@ -24,6 +24,7 @@ import aiy.audio
 import aiy.assistant.grpc
 from local_commands.email_commands import EmailAssistant
 from local_commands.audio_commands import AudioAssistant
+from local_commands.shutdown_commands import ShutdownAssistant
 
 from google.assistant.library import Assistant
 from google.assistant.library.event import EventType
@@ -92,12 +93,12 @@ class MyAssistant(object):
                 self._assistant.stop_conversation()
                 AudioAssistant._create_wav_file()
                 
-            if text == 'playback wav file':
+            elif text == 'playback wav file':
                 self._assistant.stop_conversation()
                 AudioAssistant._play_wav_file()
             
             #led commands
-            if text == 'LED mode':
+            elif text == 'LED mode':
                 self._assistant.stop_conversation()
                 try:
                     self._led_control()
@@ -105,18 +106,18 @@ class MyAssistant(object):
                     self._destroy_GPIO()
             
             #email commands
-            if text == 'send emails':
+            elif text == 'send emails':
                 self._assistant.stop_conversation()
                 EmailAssistant._send_files()
             
             
             #power commands
-#            elif text == 'shutdown':
-#                self._assistant.stop_conversation()
-#                self._shutdown()
-#            elif text == 'reboot':
-#                self._assistant.stop_conversation()
-#                self._reboot_pi()
+            elif text == 'shutdown':
+                self._assistant.stop_conversation()
+                ShutdownAssistant._shutdown()
+            elif text == 'reboot':
+                self._assistant.stop_conversation()
+                ShutdownAssistant._reboot()
             
 
         elif event.type == EventType.ON_CONVERSATION_TURN_FINISHED:
