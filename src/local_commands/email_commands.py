@@ -11,161 +11,121 @@ from email import encoders
 
 import aiy.audio
 import aiy.voicehat
-
-
-class EmailAssistant():
-    
-    def __init__(self):
-        self._assistant = aiy.assistant.grpc.get_assistant()
-    
-    def _send_files(self, recipient, files=[]):
-        assert type(recipient)==list
-        assert type(files)==list
-    
-        msg = MIMEMultipart()
-        msg['From'] = user
-        msg['To'] = COMMASPACE.join(recipient)
-        msg['Date'] = formatdate(localtime=True)
-        msg['Subject'] = 'files from the cardboard'
-    
-        # msg.attach(MIMEText(body))
-    
-        for file in files:
-            try:
-                part = MIMEBase('application', "octet-stream")
-                with open(file, 'rb') as fp:
-                    part.set_payload(fp.read())
-                encoders.encode_base64(part)
-                part.add_header('Content-Disposition', 'attachment', filename=os.path.basename(file))
-                msg.attach(part)
-            except:
-                print("Unable to open one of the attachments. Error: ", sys.exc_info()[0])
-                raise
-    
-        try:
-            with smtplib.SMTP('smtp.gmail.com', 587) as s:
-                s.ehlo()
-                s.starttls()
-                s.ehlo()
-                s.login(user, passwd)
-                s.sendmail(user, recipient, msg.as_string())
-                s.close()
-            print("Email sent!")
-            s.quit()
-        except:
-            print("Unable to send the email. Error: ", sys.exc_info()[0])
-            raise
-        
-        finally:
-            recipient = []
-            files = []
-    
-    
-    ### confirmation prompts  ###
-    
-    def _set_recipients(self):
-        aiy.audio.say('who should i send the email to?')
-        print('Listening ...')
-        text, audio = self._assistant.recognize()
-        
-        if text is not None:
-            aiy.audio.say('You said', text)
-            print('You said, "', text, '"')
-            
-            self._confirm_user_response('ok email will be sent to', text, self._set_recipient)
-        else:
-            print('i did not hear you')
-            aiy.audio.say('i did not hear you')
-            
-            self.try_again(self._set_recipient)    
-    
-    
-    def _confirm_user_response(self, phrase, response, function):
-        aiy.audio.say('is this correct?')
-        text, audio = self._assistant.recognize()
-        
-        if text == 'yes':
-            aiy.audio.say(phrase, response)
-            return response
-        elif text == 'no':
-            self._try_again(function)
-    
-    
-    def _try_again(self, function):
-        aiy.audio.say('would you like to try again?')
-        text, audio = self._assistant.recognize()
-        
-        if text == 'yes':
-            function()
-        else: 
-            self._end_program()
-    
-        
-    def _end_program(self):
-        status_ui = aiy.voicehat.get_status_ui()
-        aiy.audio.say('ok. let me know how else i can help.')
-        status_ui.status('ready')
-        self._can_start_conversation = True
-    
-    
-    ### set parameters ###
-    
-    def _set_recipient(self):
-        aiy.audio.say('who should i send the email to')
-        print('Listening ...')
-        text, audio = self._assistant.recognize()
-        
-        if text is not None:
-            aiy.audio.say('You said', text)
-            print('You said, "', text, '"')
-            self._confirm_user_response('ok email will be sent to', text, self._set_recipient)
-
-        else:
-            print('i did not hear you')
-            aiy.audio.say('i did not hear you')
-            self.try_again(self._set_recipient)
-
-
-
+import aiy.assistant.grpc.get_assistant as assistant
+import local_commands.text_to_speech_commands as gtts
 
 user = ''
-passwd = ''
-files = []
+password = ''
+can_start_conversation = False 
+
+
+def send_files(recipient, files):
+    assert type(recipient) == list
+    assert type(files) == list
+
+    msg = MIMEMultipart()
+    msg['From'] = user
+    msg['To'] = COMMASPACE.join(recipient)
+    msg['Date'] = formatdate(localtime=True)
+    msg['Subject'] = 'files from the cardboard'
+    # msg.attach(MIMEText(body))
+
+    for file in files:
+        try:
+            part = MIMEBase('application', "octet-stream")
+            with open(file, 'rb') as fp:
+                part.set_payload(fp.read())
+            encoders.encode_base64(part)
+            part.add_header('Content-Disposition', 'attachment', filename=os.path.basename(file))
+            msg.attach(part)
+        except:
+            print('Unable to open one of the attachments. Error: ', sys.exc_info()[0])
+            raise
+
+    try:
+        with smtplib.SMTP('smtp.gmail.com', 587) as s:
+            s.ehlo()
+            s.starttls()
+            s.ehlo()
+            s.login(user, password)
+            s.sendmail(user, recipient, msg.as_string())
+            s.close()
+        print('Email sent!')
+        gtts.speak('email sent')
+        s.quit()
+    except:
+        print('Unable to send the email. Error: ', sys.exc_info()[0])
+        gtts.speak('unable to send email')
+        
+        try_again(send_files)
+    finally:
+        recipient = []
+        files = []
+
+
+def set_recipients():
+    gtts.speak('who should i send the email to?')
+    print('Listening ...')
+    recipient, audio = assistant.recognize()
+    
+    if recipient is not None:
+        gtts.speak('You said', recipient)
+        print('You said, "', recipient, '"')
+        
+        confirm_user_response('ok email will be sent to', recipient, set_recipients)
+    else:
+        print('i did not hear you')
+        gtts.speak('i did not hear you')
+        
+        try_again(set_recipients)    
 
 
 
-def main():
-    recipients = EmailAssistant._set_recipients()
-    EmailAssistant._send_files()([recipients], 
-         'Dear sir..', 
-         [files] )
+### confirmation prompts  ###
+def try_again(function):
+    status_ui = aiy.voicehat.get_status_ui()
+    gtts.speak('would you like to try again?')
+    text, audio = assistant.recognize()
+    
+    if text == 'yes':
+        function()
+    else: 
+        gtts.speak('ok. aborting email service')
+        status_ui.status('ready')
+        can_start_conversation = True  
 
-if __name__ == '__main__':
-    main()
 
+def confirm_user_response(phrase, response, function):
+    gtts.speak('is this correct?')
+    text, audio = assistant.recognize()
+    
+    if text == 'yes':
+        gtts.speak(phrase)
+        gtts.speak(response)
+        return response
+    elif text == 'no':
+        try_again(function)
 
+    
+def confirm_information():
+    status_ui = aiy.voicehat.get_status_ui()
+    recipient = set_recipients()
+    
+    gtts.speak('let\'s confirm. you would like audio.wav sent to', recipient, 'is this correct?')
+    
+    text, audio = assistant.recognize()
+    
+    if text == 'yes':
+        aiy.audio.say('ok sending email')
+        send_files(recipient, ['audio.wav'])
+    elif text == 'no':
+        gtts.speak('ok. aborting email service')
+        status_ui.status('ready')
+        can_start_conversation = True  
 
 
 # =============================================================================
-#     def _confirm_information(self):
-#         status_ui = aiy.voicehat.get_status_ui()
-#         recipient = self._set_recipient()
-#         file_name = self._set_attachment()
-#         files = file_name + '.wav'
-#         
-#         aiy.audio.say('let\'s confirm. you would like', file_name, 'sent to', recipient, 'is this correct?')
-#         assistant = aiy.assistant.grpc.get_assistant()
-#         text, audio = assistant.recognize()
-#         
-#         if text == 'yes':
-#             aiy.audio.say('ok sending email')
-#             self._send_files(recipient, files)
-#         elif text == 'no':
-#             aiy.audio.say('ok')
-#             status_ui.status('ready')
-#             self._can_start_conversation = True  
-#             
-#     def _set_files(self):
+#     def _set_files():
 #         assistant = aiy.assistant.grpc.get_assistant()
 #         
 #         aiy.audio.say('what file should i send?')
@@ -176,7 +136,7 @@ if __name__ == '__main__':
 #             print('You said, "', text, '"')
 #             aiy.audio.say('you said', text, 'is this correct?')
 #             
-#             self._confirm_user_response('ok email will be sent to', text, self._set_files)
+#             confirm_user_response('ok email will be sent to', text, set_files)
 #             
 #             
 #             file_name = text
@@ -184,6 +144,6 @@ if __name__ == '__main__':
 #         else:
 #             print('i did not hear you')
 #             aiy.audio.say('i did not hear you')
-#             self._try_again(self._set_attachment)
+#             try_again(set_attachment)
 # =============================================================================
 
