@@ -1,25 +1,25 @@
 #!/usr/bin/env python3
 
-import subprocess
+#import subprocess
 import RPi.GPIO as GPIO
 
-import aiy.audio
-
-class ShutdownAssistant ():
+import local_commands.text_to_speech_commands as gtts
 
     #local commands - power
-    def _destroy_GPIO(self):
-        GPIO.output(26, GPIO.LOW)
-        GPIO.cleanup()
-        
-    def _shutdown(self):
-        print('shut down')
-        #aiy.audio.say('Turning Off')
-        #self._destroy_GPIO()
-        #subprocess.call(['sudo', 'shutdown', '-h', 'now'])
+def destroy_GPIO():
+    GPIO.output(26, GPIO.LOW)
+    GPIO.cleanup()
     
-    def _reboot(self):
-        print('reboot')
-        #aiy.audio.say('Restarting')
-        #self._destroy_GPIO()
-        #subprocess.call(['sudo', 'reboot', '-h', 'now'])
+def shutdown():
+    print('shut down')
+    gtts.speak('Turning Off')
+    destroy_GPIO()
+    #subprocess.call(['sudo', 'shutdown', '-h', 'now'])
+
+def reboot():
+    print('reboot')
+    gtts.speak('Restarting')
+    destroy_GPIO()
+    #subprocess.call(['sudo', 'reboot', '-h', 'now'])
+
+

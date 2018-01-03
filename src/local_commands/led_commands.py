@@ -9,7 +9,7 @@ import aiy.audio
 import aiy.assistant.grpc
 
 
-def _led_control(self):
+def led_control():
     recognizer = aiy.cloudspeech.get_recognizer()
     recognizer.expect_phrase('turn on the light')
     recognizer.expect_phrase('turn off the light')

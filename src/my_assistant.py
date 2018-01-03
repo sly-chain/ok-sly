@@ -14,7 +14,6 @@ It is available for Raspberry Pi 2/3 only; Pi Zero is not supported.
 import logging
 import sys
 import threading
-import subprocess
 import RPi.GPIO as GPIO
 
 import aiy.assistant.auth_helpers
@@ -22,9 +21,11 @@ import aiy.cloudspeech
 import aiy.voicehat
 import aiy.audio
 import aiy.assistant.grpc
-from local_commands.email_commands import EmailAssistant
-from local_commands.audio_commands import AudioAssistant
-from local_commands.shutdown_commands import ShutdownAssistant
+
+import local_commands.email_commands as email
+import local_commands.audio_commands as audio
+import local_commands.led_commands as led
+import local_commands.shutdown_commands as power
 
 from google.assistant.library import Assistant
 from google.assistant.library.event import EventType
@@ -47,9 +48,6 @@ class MyAssistant(object):
         self._task = threading.Thread(target=self._run_task)
         self._can_start_conversation = False
         self._assistant = None
-        self._AudioAssistant = AudioAssistant()
-        self._EmailAssistant = EmailAssistant()
-        self._ShutdownAssistant = ShutdownAssistant()
 
     def start(self):
         """Starts the assistant.
@@ -91,36 +89,37 @@ class MyAssistant(object):
             print('You said:', event.args['text'])
             text = event.args['text'].lower()
 
-            #audio commands
+
+        #audio commands
             if text == 'record me':
                 self._assistant.stop_conversation()
-                self._AudioAssistant._create_wav_file()
+#                self._AudioAssistant._create_wav_file()
                 
             elif text == 'play me':
                 self._assistant.stop_conversation()
-                self._AudioAssistant._play_wav_file()
+#                self._AudioAssistant._play_wav_file()
             
-            #led commands
+        #led commands
             elif text == 'LED mode':
                 self._assistant.stop_conversation()
                 try:
-                    self._led_control()
+                    led.led_control()
                 except:
-                    self._destroy_GPIO()
+                    GPIO.destroy_GPIO()
             
-            #email commands
+        #email commands
             elif text == 'send emails':
                 self._assistant.stop_conversation()
-                self._EmailAssistant._send_files()
+                email.send_files()
             
             
-            #power commands
+        #power commands
             elif text == 'shut down':
                 self._assistant.stop_conversation()
-                self._ShutdownAssistant._shutdown()
+                power.shutdown()
             elif text == 'reboot':
                 self._assistant.stop_conversation()
-                self._ShutdownAssistant._reboot()
+                power.reboot()
             
 
         elif event.type == EventType.ON_CONVERSATION_TURN_FINISHED:
@@ -140,9 +139,6 @@ class MyAssistant(object):
             self._assistant.start_conversation()
     
     
-
-    
-
 def main():
     MyAssistant().start()
 
