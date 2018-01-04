@@ -6,9 +6,9 @@ import tempfile
 import shutil
 #import wave
 
-import aiy.assistant.grpc
-import aiy.audio
-import aiy.cloudspeech
+import src.aiy.assistant.grpc
+import src.aiy.audio
+import src.aiy.cloudspeech
 
 
 sys.path.append(os.path.realpath(os.path.join(__file__, '..', '..')) + '/src/')
@@ -27,9 +27,9 @@ class AudioAssistant():
         try:
             input("When you're ready, press enter and say 'Testing, 1 2 3'...")
             print('Recording...')
-            aiy.audio.record_to_wave(temp_path, 5)
+            src.aiy.audio.record_to_wave(temp_path, 5)
             print('Playing back recorded audio...')
-            aiy.audio.play_wave(temp_path)
+            src.aiy.audio.play_wave(temp_path)
         finally:
             try:
                 os.unlink(temp_path)
@@ -38,28 +38,28 @@ class AudioAssistant():
     
     
     def _record_save_wav(self):
-        assistant = aiy.assistant.grpc.get_assistant()
+        assistant = src.aiy.assistant.grpc.get_assistant()
         temp_file, temp_path = tempfile.mkstemp(suffix='.wav')
         os.close(temp_file)
         perm_path = os.path.expanduser('~/' + str(temp_file) + '.wav')
 
         try:
-            aiy.audio.say('recording')
+            src.aiy.audio.say('recording')
             print('Recording...')
-            aiy.audio.record_to_wave(temp_path, 5)
-            aiy.audio.play_wave(temp_path)
+            src.aiy.audio.record_to_wave(temp_path, 5)
+            src.aiy.audio.play_wave(temp_path)
             
-            aiy.audio.say('would you like to save the file?')
+            src.aiy.audio.say('would you like to save the file?')
             text, audio = assistant.recognize()
             print(text)
             
             if text == 'yes':
                 # move to perm_path
                 shutil.move(temp_path, perm_path)
-                aiy.audio.say('saved as' + str(temp_file))
+                src.aiy.audio.say('saved as' + str(temp_file))
         
         except:
-            aiy.audio.say('something went wrong')
+            src.aiy.audio.say('something went wrong')
             print('Problems with recording')
             pass
             
@@ -71,10 +71,10 @@ class AudioAssistant():
     
             
     def _find_wav_file(self):
-        assistant = aiy.assistant.grpc.get_assistant()
+        assistant = src.aiy.assistant.grpc.get_assistant()
         
         # refer to file by temp_file integer referenced when saving file
-        aiy.audio.say('what is the file name?')
+        src.aiy.audio.say('what is the file name?')
         text, audio = assistant.recognize()
         
         file_queried = os.path.expanduser('~/' + text + '/.wav')
@@ -84,23 +84,23 @@ class AudioAssistant():
                 return file_queried
             
         except FileNotFoundError:
-            aiy.audio.say('file not found')
+            src.aiy.audio.say('file not found')
             print('file not found')
             pass
     
     
     def _play_wav_file(self):
-        assistant = aiy.assistant.grpc.get_assistant()
+        assistant = src.aiy.assistant.grpc.get_assistant()
         
-        aiy.audio.say('what would you like to play?')
+        src.aiy.audio.say('what would you like to play?')
         text, audio = assistant.recognize()
         
         if self._find_wav_file():
             file_to_play = self._find_wav_file()
-            aiy.audio.play_wave(file_to_play)
+            src.aiy.audio.play_wave(file_to_play)
             
         else:
-            aiy.audio.say('something went wrong')
+            src.aiy.audio.say('something went wrong')
             print('file not found')
             pass
     

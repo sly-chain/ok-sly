@@ -12,7 +12,9 @@ from email import encoders
 import aiy.audio
 import aiy.voicehat
 import aiy.assistant.grpc.get_assistant as assistant
+
 import local_commands.text_to_speech_commands as gtts
+
 
 user = ''
 password = ''
@@ -69,7 +71,7 @@ def set_recipients():
     recipient, audio = assistant.recognize()
     
     if recipient is not None:
-        gtts.speak('You said', recipient)
+        gtts.speak('You said ' + recipient)
         print('You said, "', recipient, '"')
         
         confirm_user_response('ok email will be sent to', recipient, set_recipients)
@@ -111,12 +113,12 @@ def confirm_information():
     status_ui = aiy.voicehat.get_status_ui()
     recipient = set_recipients()
     
-    gtts.speak('let\'s confirm. you would like audio.wav sent to', recipient, 'is this correct?')
+    gtts.speak('let\'s confirm. you would like audio.wav sent to ' + recipient + '. is this correct?')
     
     text, audio = assistant.recognize()
     
     if text == 'yes':
-        aiy.audio.say('ok sending email')
+        gtts.speak('ok sending email')
         send_files(recipient, ['audio.wav'])
     elif text == 'no':
         gtts.speak('ok. aborting email service')
