@@ -16,9 +16,9 @@
 
 import os.path
 
-import aiy._apis._speech
-import aiy.audio
-import aiy.voicehat
+import src.aiy._apis._speech
+import src.aiy.audio
+import src.aiy.voicehat
 
 # Global variables. They are lazily initialized.
 _cloudspeech_recognizer = None
@@ -32,8 +32,8 @@ class _CloudSpeechRecognizer(object):
     """
 
     def __init__(self, credentials_file):
-        self._request = aiy._apis._speech.CloudSpeechRequest(credentials_file)
-        self._recorder = aiy.audio.get_recorder()
+        self._request = src.aiy._apis._speech.CloudSpeechRequest(credentials_file)
+        self._recorder = src.aiy.audio.get_recorder()
         self._hotwords = []
 
     def recognize(self):

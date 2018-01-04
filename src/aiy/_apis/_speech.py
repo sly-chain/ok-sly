@@ -31,7 +31,7 @@ from google.assistant.embedded.v1alpha1 import embedded_assistant_pb2
 import grpc
 from six.moves import queue
 
-import aiy.i18n
+import src.aiy.i18n
 
 logger = logging.getLogger('speech')
 

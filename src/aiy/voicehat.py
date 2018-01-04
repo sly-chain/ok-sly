@@ -14,16 +14,16 @@
 
 """Drivers for shared functionality provided by the VoiceHat."""
 
-import aiy._drivers._button
-import aiy._drivers._led
-import aiy._drivers._status_ui
+import src.aiy._drivers._button
+import src.aiy._drivers._led
+import src.aiy._drivers._status_ui
 
 # GPIO definitions (BCM)
 _GPIO_BUTTON = 23
 _GPIO_LED = 25
 
 # Import LED class to expose the LED constants.
-LED = aiy._drivers._led.LED
+LED = src.aiy._drivers._led.LED
 
 # Global variables. They are lazily initialized.
 _voicehat_button = None
@@ -59,7 +59,7 @@ def get_button():
     """
     global _voicehat_button
     if not _voicehat_button:
-        _voicehat_button = aiy._drivers._button.Button(channel=_GPIO_BUTTON)
+        _voicehat_button = src.aiy._drivers._button.Button(channel=_GPIO_BUTTON)
     return _voicehat_button
 
 
@@ -77,7 +77,7 @@ def get_led():
     """
     global _voicehat_led
     if not _voicehat_led:
-        _voicehat_led = aiy._drivers._led.LED(channel=_GPIO_LED)
+        _voicehat_led = src.aiy._drivers._led.LED(channel=_GPIO_LED)
         _voicehat_led.start()
     return _voicehat_led
 
@@ -105,5 +105,5 @@ def get_status_ui():
     """
     global _status_ui
     if not _status_ui:
-        _status_ui = aiy._drivers._status_ui._StatusUi()
+        _status_ui = src.aiy._drivers._status_ui._StatusUi()
     return _status_ui

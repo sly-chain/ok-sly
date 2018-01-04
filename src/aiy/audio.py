@@ -17,9 +17,9 @@
 import time
 import wave
 
-import aiy._drivers._player
-import aiy._drivers._recorder
-import aiy._drivers._tts
+import src.aiy._drivers._player
+import src.aiy._drivers._recorder
+import src.aiy._drivers._tts
 
 AUDIO_SAMPLE_SIZE = 2  # bytes per sample
 AUDIO_SAMPLE_RATE_HZ = 16000
@@ -67,7 +67,7 @@ def get_player():
     """
     global _voicehat_player
     if not _voicehat_player:
-        _voicehat_player = aiy._drivers._player.Player()
+        _voicehat_player = src.aiy._drivers._player.Player()
     return _voicehat_player
 
 
@@ -79,7 +79,7 @@ def get_recorder():
     """
     global _voicehat_recorder
     if not _voicehat_recorder:
-        _voicehat_recorder = aiy._drivers._recorder.Recorder()
+        _voicehat_recorder = src.aiy._drivers._recorder.Recorder()
     return _voicehat_recorder
 
 
@@ -115,8 +115,8 @@ def say(words, lang=None):
     Otherwise, the language from aiy.i18n will be used.
     """
     if not lang:
-        lang = aiy.i18n.get_language_code()
-    aiy._drivers._tts.say(aiy.audio.get_player(), words, lang=lang)
+        lang = src.aiy.i18n.get_language_code()
+    src.aiy._drivers._tts.say(src.aiy.audio.get_player(), words, lang=lang)
 
 
 def get_status_ui():
@@ -127,5 +127,5 @@ def get_status_ui():
     """
     global _status_ui
     if not _status_ui:
-        _status_ui = aiy._drivers._StatusUi()
+        _status_ui = src.aiy._drivers._StatusUi()
     return _status_ui

@@ -17,8 +17,8 @@
 import logging
 import os.path
 
-import aiy.audio
-import aiy.voicehat
+import src.aiy.audio
+import src.aiy.voicehat
 
 logger = logging.getLogger('status_ui')
 
@@ -33,15 +33,15 @@ class _StatusUi(object):
     def __init__(self):
         self._trigger_sound_wave = None
         self._state_map = {
-            "starting": aiy.voicehat.LED.PULSE_QUICK,
-            "ready": aiy.voicehat.LED.BEACON_DARK,
-            "listening": aiy.voicehat.LED.ON,
-            "thinking": aiy.voicehat.LED.PULSE_QUICK,
-            "stopping": aiy.voicehat.LED.PULSE_QUICK,
-            "power-off": aiy.voicehat.LED.OFF,
-            "error": aiy.voicehat.LED.BLINK_3,
+            "starting": src.aiy.voicehat.LED.PULSE_QUICK,
+            "ready": src.aiy.voicehat.LED.BEACON_DARK,
+            "listening": src.aiy.voicehat.LED.ON,
+            "thinking": src.aiy.voicehat.LED.PULSE_QUICK,
+            "stopping": src.aiy.voicehat.LED.PULSE_QUICK,
+            "power-off": src.aiy.voicehat.LED.OFF,
+            "error": src.aiy.voicehat.LED.BLINK_3,
         }
-        aiy.voicehat.get_led().set_state(aiy.voicehat.LED.OFF)
+        src.aiy.voicehat.get_led().set_state(src.aiy.voicehat.LED.OFF)
 
     def set_trigger_sound_wave(self, trigger_sound_wave):
         """Set the trigger sound.
@@ -73,7 +73,7 @@ class _StatusUi(object):
             logger.warning("unsupported state: %s, must be one of %s",
                            status, ",".join(self._state_map.keys()))
             return False
-        aiy.voicehat.get_led().set_state(self._state_map[status])
+        src.aiy.voicehat.get_led().set_state(self._state_map[status])
         if status == 'listening' and self._trigger_sound_wave:
-            aiy.audio.play_wave(self._trigger_sound_wave)
+            src.aiy.audio.play_wave(self._trigger_sound_wave)
         return True

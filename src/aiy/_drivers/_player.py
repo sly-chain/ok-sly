@@ -18,7 +18,7 @@ import logging
 import subprocess
 import wave
 
-import aiy._drivers._alsa
+import src.aiy._drivers._alsa
 
 logger = logging.getLogger('audio')
 

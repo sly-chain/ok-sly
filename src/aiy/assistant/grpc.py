@@ -14,10 +14,10 @@
 
 """An API to access the Google Assistant."""
 
-import aiy._apis._speech
-import aiy.assistant.auth_helpers
-import aiy.audio
-import aiy.voicehat
+import src.aiy._apis._speech
+import src.aiy.assistant.auth_helpers
+import src.aiy.audio
+import src.aiy.voicehat
 
 # Global variables. They are lazily initialized.
 _assistant_recognizer = None
@@ -27,8 +27,8 @@ class _AssistantRecognizer(object):
     """Your personal Google Assistant."""
 
     def __init__(self, credentials):
-        self._request = aiy._apis._speech.AssistantSpeechRequest(credentials)
-        self._recorder = aiy.audio.get_recorder()
+        self._request = src.aiy._apis._speech.AssistantSpeechRequest(credentials)
+        self._recorder = src.aiy.audio.get_recorder()
 
     def recognize(self):
         """Recognizes the user's speech and gets answers from Google Assistant.
@@ -72,6 +72,6 @@ def get_assistant():
     """
     global _assistant_recognizer
     if not _assistant_recognizer:
-        credentials = aiy.assistant.auth_helpers.get_assistant_credentials()
+        credentials = src.aiy.assistant.auth_helpers.get_assistant_credentials()
         _assistant_recognizer = _AssistantRecognizer(credentials)
     return _assistant_recognizer

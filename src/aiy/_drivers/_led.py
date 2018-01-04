@@ -54,7 +54,7 @@ class LED:
 
     def __del__(self):
         self.stop()
-        GPIO.cleanup(self.channel)
+        GPIO.cleanup()
 
     def start(self):
         """Start the LED driver."""
@@ -81,24 +81,27 @@ class LED:
             self.state = state
 
     def _animate(self):
-        while True:
-            state = None
-            running = False
-            with self.lock:  # pylint: disable=E1129
-                state = self.state
-                self.state = None
-                running = self.running
-            if not running:
-                return
-            if state:
-                if not self._parse_state(state):
-                    raise ValueError('unsupported state: %d' % state)
-            if self.iterator:
-                self.pwm.ChangeDutyCycle(next(self.iterator))
-                time.sleep(self.sleep)
-            else:
-                # We can also wait for a state change here with a Condition.
-                time.sleep(1)
+        try:
+            while True:
+                state = None
+                running = False
+                with self.lock:  # pylint: disable=E1129
+                    state = self.state
+                    self.state = None
+                    running = self.running
+                if not running:
+                    return
+                if state:
+                    if not self._parse_state(state):
+                        raise ValueError('unsupported state: %d' % state)
+                if self.iterator:
+                    self.pwm.ChangeDutyCycle(next(self.iterator))
+                    time.sleep(self.sleep)
+                else:
+                    # We can also wait for a state change here with a Condition.
+                    time.sleep(1)
+        except KeyboardInterrupt:
+            self.__del__()
 
     def _parse_state(self, state):
         self.iterator = None

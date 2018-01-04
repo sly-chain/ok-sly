@@ -19,7 +19,7 @@ import logging
 import os
 import subprocess
 import tempfile
-from aiy import i18n
+from src.aiy import i18n
 
 # Path to a tmpfs directory to avoid SD card wear
 TMP_DIR = '/run/user/%d' % os.getuid()
@@ -57,7 +57,7 @@ def say(player, words, lang='en-US'):
 
 def _main():
     import argparse
-    from aiy import audio
+    from src.aiy import audio
 
     logging.basicConfig(level=logging.INFO)
 
